@@ -7,6 +7,7 @@ import cn.hutool.core.collection.CollUtil;
  * @date 2023/11/13 15:29
  * @description
  */
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.*;
@@ -15,9 +16,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,18 +30,21 @@ public class JsonToExcel {
         String 量方平台产品 = baseDir+"量方平台产品"+".json";
         String 冷链平台产品 = baseDir+"冷链平台产品"+".json";
         String 载重平台产品 = baseDir+"载重平台产品"+".json";
-        //files.add(量方平台产品);
+        files.add(量方平台产品);
         files.add(冷链平台产品);
         files.add(载重平台产品);
         // 创建Excel工作簿
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Applications");
-        Map<String, HashMap<String, String>> configs = JsonDataProcessor.getConfigs();
+        //Workbook workbook = new XSSFWorkbook();
+        //Sheet sheet = workbook.createSheet("Applications");
+        //Map<String, HashMap<String, String>> configs = JsonDataProcessor.getConfigs();
 
 
 
         try {
             for (String fielPath : files) {
+                Workbook workbook = new XSSFWorkbook();
+                Sheet sheet = workbook.createSheet("Applications");
+                Map<String, HashMap<String, String>> configs = JsonDataProcessor.getConfigs();
 
                 String baseServiceURl = "https://devops.chinawayltd.com/system/deliver/application/detail?id=";
                 // 从外部文件读取JSON数据
@@ -74,32 +75,34 @@ public class JsonToExcel {
                     row.createCell(2).setCellValue(application.get("code_repositories").asText());
                     Map configMap = JsonDataProcessor.getConfigMap(name,configs);
                     if (CollUtil.isNotEmpty(configMap)){
-                        row.createCell(3).setCellValue(configMap.toString());
+                        row.createCell(3).setCellValue(JSONUtil.formatJsonStr(configMap.toString()));
                     }else{
                         Map configMap2= JsonDataProcessor.getConfigMap(  replaceUnderscore(name),configs);
                         if (CollUtil.isNotEmpty(configMap2)){
-                            row.createCell(3).setCellValue(configMap2.toString());
+                            row.createCell(3).setCellValue(JSONUtil.formatJsonStr(configMap2.toString()));
                         }
                     }
                 }
                 Row row = sheet.createRow(rowNum++);
+                saveFile(workbook, getFileNameWithoutExtension(jsonFile)+".xlsx");
             }
             // 自动打开文件所在目录
+            // 生成保存文件的路径
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // 生成保存文件的路径
-        saveFile(workbook);
+        //// 生成保存文件的路径
+        //saveFile(workbook);
     }
     private static String replaceUnderscore(String input) {
         // 使用 replace 方法进行替换
         return input.replace( '-','_');
     }
-    private static void saveFile(Workbook workbook) throws IOException {
-        String outputPath = "applications.xlsx";
+    private static void saveFile(Workbook workbook, String fileName) throws IOException {
+        //String outputPath = "applications.xlsx";
 
         // 将数据写入文件
-        try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
+        try (FileOutputStream fileOut = new FileOutputStream(fileName)) {
             workbook.write(fileOut);
         }
 
@@ -107,10 +110,29 @@ public class JsonToExcel {
         workbook.close();
 
         // 打印保存的文件路径
-        File file1 = new File(outputPath);
+        File file1 = new File(fileName);
 
         System.out.println("输出文件: " );
         System.out.println(file1.getAbsolutePath() );
+    }
+
+
+    private static String getFileNameWithoutExtension(File file) {
+
+
+// 获取文件名称
+        String fileName = file.getName();
+
+        // 获取文件名不包含后缀的部分
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+
+
+            return fileName.substring(0, lastDotIndex);
+        } else {
+            // 如果没有后缀，则返回整个文件名
+            return fileName;
+        }
     }
 }
 

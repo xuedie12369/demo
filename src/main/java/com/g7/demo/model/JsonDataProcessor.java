@@ -24,19 +24,31 @@ public class JsonDataProcessor {
         }
         //writer.append("AppId,Redis,MySQL,Mongo,HBase,DRDS,RocketMQ,Kafka,OSS,ZooKeeper\n");
         //Map<String, String> stringStringMap = filterMapByPrefix(coldchain_biz_server, "spring.redis");
-
+//| redis | mysql | mongo | hbase
+// 未处理的  // | drds| RocketMQ | kafka | 域名 |
+// OSS信息 | zk信息|等
         Map result = new HashMap<String, String>();
         Map redisMap = getRedisMap(coldchain_biz_server);
         result.putAll(redisMap);
         //mysql的
-        Map<String, String> filteredMap = filterMapByRegex(coldchain_biz_server, "spring\\.datasource\\..*\\.read\\.jdbcUrl");
+        Map<String, String> mysql = filterMapByRegex(coldchain_biz_server, "spring\\.datasource\\..*\\.read\\.jdbcUrl");
         Map<String, String> oss = filterMapByRegex(coldchain_biz_server, "oss\\..*");
         Map<String, String> MongoDB = filterMapByRegex(coldchain_biz_server, "spring\\.data\\.mongodb\\..*");
         Map<String, String> zookeeper = filterMapByRegex(coldchain_biz_server, "zookeeper\\..*");
-        result.putAll(filteredMap);
+        Map<String, String> hbase = filterMapByRegex(coldchain_biz_server, "hbase\\..*");
+        Map<String, String> kafka = filterMapByRegex(coldchain_biz_server, "kafka.consumer.servers\\..*");
+        Map<String, String> kafka2 = filterMapByRegex(coldchain_biz_server, "kafka.brokers\\..*");
+        Map<String, String> rocketmq = filterMapByRegex(coldchain_biz_server, "rocketmq.consumer\\..*");
+        //Map<String, String> hbase = filterMapByRegex(coldchain_biz_server, "hbase.\\..*");
+        result.putAll(rocketmq);
+        result.putAll(mysql);
+        //result.putAll(mysql);
+        result.putAll(kafka);
+        result.putAll(kafka2);
         result.putAll(oss);
         result.putAll(MongoDB);
         result.putAll(zookeeper);
+        result.putAll(hbase);
         return result;
 
     }
